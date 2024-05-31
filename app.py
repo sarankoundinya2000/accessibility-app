@@ -1,13 +1,26 @@
 import streamlit as st
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 from axe_selenium_python import Axe
 import time
 
-# Initialize WebDriver
-driver = webdriver.Chrome()
+# Configure headless Chrome
+def get_driver():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--remote-debugging-port=9222")
+    chrome_options.add_argument("--disable-infobars")
+    chrome_options.add_argument("--disable-extensions")
+    return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
 
 # Function to perform accessibility analysis using Selenium and Axe
 def analyze_accessibility(url):
+    driver = get_driver()
     try:
         # Load the web page in the browser
         driver.get(url)
@@ -19,11 +32,10 @@ def analyze_accessibility(url):
         results = axe.run()
 
         # Check if any violations are found
-        violations = results.get('violations', [])
-        if violations:
-            # Display detected accessibility issues and corresponding HTML tags to the user
+        if results['violations']:
+            # Display detected accessibility issues to the user
             st.write("Accessibility issues detected:")
-            for violation in violations:
+            for violation in results['violations']:
                 st.write(f"- {violation['description']}")
                 st.write("  Tags with issues:")
                 for node in violation['nodes']:
