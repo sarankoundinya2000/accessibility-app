@@ -1,3 +1,4 @@
 streamlit
 selenium
 axe-selenium-python
+webdriver-manager
